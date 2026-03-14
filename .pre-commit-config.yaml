@@ -1,0 +1,49 @@
+# 阻止提交大文件和清理尾随空格
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  # 使用 Ruff 进行极速的代码格式化和 Lint
+  # Ruff 取代了 flake8, isort, black
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: [ --fix ]
+      - id: ruff-format
+
+  # 关键：确保你的 uv.lock 与 pyproject.toml 保持同步
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.5.10
+    hooks:
+      - id: uv-lock
+
+  # 可选：提交时用 uv 执行 ruff 格式化（全量 format .，可能较慢）
+  - repo: local
+    hooks:
+      - id: uv-ruff-format
+        name: uv run ruff format .
+        entry: uv run ruff format .
+        language: system
+        pass_filenames: false
+
+      # 前端检查（仅当 web/ 下有变更时触发）
+      - id: web-eslint
+        name: "web: eslint"
+        entry: npm --prefix web run lint
+        language: system
+        pass_filenames: false
+        files: ^web/
+
+      # 前端构建检查（包含 TypeScript typecheck：tsc -b）
+      - id: web-build
+        name: "web: build (tsc -b && vite build)"
+        entry: npm --prefix web run build
+        language: system
+        pass_filenames: false
+        files: ^web/

@@ -1,0 +1,63 @@
+[project]
+name = "telegram-pt-qbit-downloader"
+version = "1.0.0"
+description = "基于 Telegram 交互的 M-Team 资源搜索与 qBittorrent 下载工具"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+
+dependencies = [
+    "pyTelegramBotAPI>=4.14.0",
+    "requests>=2.31.0",
+    "qbittorrent-api>=2023.11.57",
+    "PyYAML>=6.0.1",
+    "Jinja2>=3.1.4",
+    "APScheduler>=3.10.4",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "pytest>=8.0.0",
+    "pytest-mock>=3.12.0",
+    "ruff>=0.8.0",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "B008",   # do not perform function calls in argument defaults (FastAPI Depends)
+    "RUF001", # ambiguous-unicode-character-string (中文全角标点)
+    "RUF002", # ambiguous-unicode-character-docstring
+    "RUF003", # ambiguous-unicode-character-comment
+    "N815",
+    "N803",
+    "N806",   # 忽略命名规范 (Jinja 模板兼容性)
+    "B904",   # 允许不使用 raise from
+    "SIM105",
+    "SIM108",
+    "SIM118", # 允许不简化的结构
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

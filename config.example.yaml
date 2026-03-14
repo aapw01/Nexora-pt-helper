@@ -1,0 +1,127 @@
+# Telegram-PT-Qbit-Downloader 配置文件示例
+# 复制此文件为 config.yaml 并填入实际配置
+
+telegram:
+  # Telegram Bot Token (从 @BotFather 获取)
+  token: "YOUR_BOT_TOKEN"
+  # 可选：限制特定 chat_id 使用
+  chat_id: ""
+  # 可选：管理员 user_id 列表
+  admins: []
+
+mteam:
+  # M-Team API Key (从网站设置中获取)
+  api_key: "YOUR_MTEAM_API_KEY"
+  # M-Team 域名
+  domain: "m-team.io"
+  # 搜索类别配置
+  categories:
+    movie:
+      name: "电影"
+      ids: ["401", "419", "420", "421", "439"]
+    tv:
+      name: "剧集"
+      ids: ["403", "402", "435", "438"]
+    all:
+      name: "全部"
+      ids: []
+
+qbittorrent:
+  # qBittorrent Web UI 地址
+  host: "http://localhost"
+  port: 8080
+  username: "admin"
+  password: "adminpass"
+
+download:
+  # 默认下载路径 (当用户不选择分类时使用此路径)
+  default_path: "/downloads"
+
+# 资源整理/刮削（下载完成后复制到目标媒体库）
+organize:
+  enabled: true
+  # 模式：auto 自动整理；manual 仅手动；both 两者都启用
+  mode: "manual"
+  # 自动整理轮询间隔（分钟）
+  interval_minutes: 10
+
+  # Dry-run 模式：只输出详细日志，不实际复制/不写入去重记录（用于你测试路径映射与命名规则）
+  dry_run: false
+
+  # 严格 ID 模式：开启后必须命中稳定元数据 ID 才会整理（否则 skipped）
+  strict_id:
+    enabled: true
+    tv: true      # 电视剧必须命中 TMDB ID
+    movie: true   # 电影必须命中 TMDB ID
+
+  # 源下载目录（本服务可访问的“真实下载根目录”）
+  # - 若你用 docker 跑本服务：这里填“容器内路径”（例如 /downloads），并在 docker-compose volumes 把 qB 落盘目录挂载到 /downloads
+  # - 若你直接在宿主机跑本服务：这里可以填宿主机绝对路径（例如 /Volumes/downloads/qbittorrent）
+  download_root: "/downloads"
+
+  # 路径映射（关键）：qB 返回的 save_path/content_path 可能是 qB 所在机器的路径，本服务容器内看到的是挂载后的路径
+  # 规则：按最长前缀匹配，把 qB 路径前缀替换成容器内可访问的前缀
+  # 示例：qB 返回 /mnt/downloads/电影 但本容器挂载为 /downloads/电影，则配置 from=/mnt/downloads to=/downloads
+  # 你的常见场景示例：
+  # - qB 返回：/downloads/电影/xxx
+  # - 本服务可访问：/Volumes/downloads/qbittorrent/电影/xxx
+  # 则配置：from=/downloads to=/Volumes/downloads/qbittorrent
+  path_mappings:
+    - from: "/mnt/downloads"
+      to: "/downloads"
+
+  # 目标媒体库目录（容器内绝对路径；通常是挂载进来的 NAS 目录）
+  libraries:
+    movie: "/media/Movies"
+    tv: "/media/TV"
+
+  # TMDB 刮削（需要你提供 TMDB API Key）
+  tmdb:
+    api_key: "YOUR_TMDB_API_KEY"
+    language: "zh-CN"
+    image_domain: "image.tmdb.org"
+    scrap_original_image: false
+
+  # 过滤规则
+  filters:
+    min_filesize_mb: 200
+    media_exts: [".mkv", ".mp4", ".avi", ".ts", ".m2ts", ".mov"]
+    subtitle_exts: [".srt", ".ass", ".ssa", ".sub", ".idx"]
+    exclude_words: ["sample", "trailer", "extras"]
+
+  # Jinja 命名模板（你提供的 MoviePilot 规则）
+  naming:
+    movie: "{{ title }}{{ '.' ~ en_title  if en_title else '' }}{{ '.' ~ year if year else '' }}/{{ title }}{{ '.' ~ year if year else '' }}{{ '.Part' ~ part if part else '' }}{{ '.' ~ videoFormat if videoFormat else '' }}{{ '.' ~ fileSize if fileSize else '' }}{{ fileExt }}"
+    tv: "{{ title }}{% if en_title %}.{{ en_title }}{% endif %}{% if year %}.{{ year }}{% endif %}/{{ title }}{% if en_title %}.{{ en_title }}{% endif %}.s{{ season }}{% if season_year %}.{{ season_year }}{% endif %}/{{ title }}{% if season_episode %}.{{ season_episode }}{% endif %}{% if season_year %}.{{ season_year }}{% endif %}{% if part and episode %}.{{ part }}.第 {{ episode }} 集{% elif part %}.{{ part }}{% elif episode %}.第 {{ episode }} 集{% endif %}{% if episode_title %}.{{ episode_title }}{% endif %}{% if videoFormat %}.{{ videoFormat }}{% endif %}{{ fileExt }}"
+
+# 订阅与自动更新下载
+subscription:
+  enabled: true
+  # 轮询间隔（分钟）
+  interval_minutes: 30
+  # 每次轮询最多处理的订阅数（防止过多请求）
+  max_subscriptions: 20
+  # 每个订阅每次最多尝试搜索/下载的条目数
+  max_items_per_sub: 5
+
+# 文件管理器配置（Web UI 文件浏览与手动整理）
+file_manager:
+  # 是否启用文件管理功能
+  enabled: true
+  # 允许浏览/操作的根目录列表（安全边界）
+  # 默认会自动包含 organize.download_root 和 organize.libraries.*
+  # 这里可以添加额外允许的目录
+  allowed_roots: []
+  # 默认整理动作：copy（复制）或 move（移动）
+  default_mode: "move"
+  # 默认媒体类型：auto（自动识别）/ movie / tv
+  default_media_type: "auto"
+  # 冲突处理策略：skip（跳过）/ rename（重命名）/ overwrite（覆盖）
+  on_conflict: "skip"
+
+# Web API 配置
+api:
+  # 是否启用 Web API
+  enabled: true
+  # API 服务端口
+  port: 8000

@@ -1,0 +1,27 @@
+services:
+  # 主服务：Python 后端 + Telegram Bot + Web 前端（Nginx）
+  nexora:
+    build: .
+    image: ghcr.io/aapw001/nexora:latest
+    container_name: nexora
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./config.yaml:/app/config/config.yaml:ro
+      - ./data:/app/data
+      - /path/on/downloader-host/downloads:/downloads
+      - /path/on/downloader-host/nas-mount:/media
+    environment:
+      - TZ=Asia/Shanghai
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - pt-net
+
+networks:
+  pt-net:
+    driver: bridge
