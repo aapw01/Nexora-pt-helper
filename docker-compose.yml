@@ -2,7 +2,7 @@ services:
   # 主服务：Python 后端 + Telegram Bot + Web 前端（Nginx）
   nexora:
     build: .
-    image: ghcr.io/aapw001/nexora:latest
+    image: ghcr.io/aapw01/nexora:latest
     container_name: nexora
     restart: unless-stopped
     ports:
