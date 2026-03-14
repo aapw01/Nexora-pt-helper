@@ -10,7 +10,7 @@ venv/
 .env
 .cursor/
 # uv
-
+BRANCH_WORKFLOW_CN.md
 # 配置文件 (包含敏感信息)
 config.yaml
 
